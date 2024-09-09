@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume</title>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Basic styles */
+        .editable {
+            border: 1px dashed #ccc;
+            padding: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="resume" class="container">
+        <div class="left_side">
+            <div class="profileText">
+                <div class="imgBx">
+                    <img id="profileImage" src="resume.jpeg" width="250" height=200 align="center">
+                </div>
+                <h2>
+                    <span id="name" contenteditable="true">Enter Your Name</span><br>
+                    <span id="title" contenteditable="true">Enter Your Profession</span>
+                </h2>
+            </div>
+            <div class="contactInfo">
+                <h3 class="title"> Contact Info:</h3>
+                <ul>
+                    <li>
+                        <span class="icon"><i class="fa fa-phone" aria-hidden="true"></i></span>
+                        <span id="phone" class="text" contenteditable="true">Mobile Number</span>
+                    </li>
+                    <li>
+                        <span class="icon"><i class="fa fa-envelope-o" aria-hidden="true"></i></span>
+                        <span id="email" class="text" contenteditable="true">Email Address</span>
+                    </li>
+                    <li>
+                        <span class="icon"><i class="fa fa-linkedin" aria-hidden="true"></i></span>
+                        <span id="linkedin" class="text" contenteditable="true">LinkedIn</span>
+                    </li>
+                    <li>
+                        <span class="icon"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+                        <span id="address" class="text" contenteditable="true">Home Address</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="contactInfo education">
+                <h3 class="title"> Education</h3>
+                <ul id="educationList">
+                    <li>
+                        <h5 contenteditable="true">Duration Year</h5>
+                        <h4 contenteditable="true">Qualification</h4>
+                        <h4 contenteditable="true">Name of Institute</h4>
+                    </li>
+
+                    
+                    <!-- Add more items as needed -->
+                </ul>
+            </div>
+            <div class="contactInfo language">
+                <h3 class="title"> Languages</h3>
+                <ul id="languageList">
+                    <li>
+                        <span class="text" contenteditable="true">Enter Languages</span>
+                        <span class="percent">
+                            <div style="width:90%"></div>
+                        </span>
+                    </li>
+                    <!-- Add more languages as needed -->
+                </ul>
+            </div>
+        </div>
+        <div class="right_side">
+            <div class="about">
+                <h2 class="title2">Profile</h2>
+                <p id="profileText" contenteditable="true">
+                    Enter your Profile Details
+                </p>
+            </div>
+            <div class="about">
+                <h2 class="title2"> Experience</h2>
+                <div class="box" id="experienceList">
+                    <ul>
+                        <li>
+                            <h5 contenteditable="true">Duration Year</h5>
+                            <h5 contenteditable="true">Company Name</h5>
+                            <h5 contenteditable="true">Designation</h5>
+                        </li>
+                        <!-- Add more items as needed -->
+                    </ul>
+                </div>
+            </div>
+            <button id="toggleSkills">Hide Skills</button>
+            <div id="contactInfoskills" class="skills-section">
+                <h3 class="title3"> Skills</h3>
+                <ul id="skillsList">
+                    <li>
+                        <span class="text" contenteditable="true">Enter your Skills here</span>
+                        <span class="percent">
+                            <div style="width:80%"></div>
+                        </span>
+                    </li>
+                    <!-- Add more skills as needed -->
+                </ul>
+            </div>
+            <button id="downloadResume">Download as PDF</button>
+            <button id="share">Share via Email</button>
+        </div>
+    </div>
+
+    <script>
+        // Toggle skills visibility
+        const toggleButton = document.getElementById('toggleSkills');
+        const skillsSection = document.getElementById('contactInfoskills');
+
+        toggleButton.addEventListener('click', () => {
+            if (skillsSection.classList.contains('hidden')) {
+                skillsSection.classList.remove('hidden');
+                toggleButton.textContent = 'Hide Skills';
+            } else {
+                skillsSection.classList.add('hidden');
+                toggleButton.textContent = 'Show Skills';
+            }
+        });
+
+        // PDF generation and sharing
+        document.addEventListener('DOMContentLoaded', function() {
+            const { jsPDF } = window.jspdf;
+
+            function generatePDF(callback) {
+                const resumeElement = document.getElementById('resume');
+
+                html2canvas(resumeElement).then(function(canvas) {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+
+                    if (callback) {
+                        callback(pdf);
+                    } else {
+                        pdf.save('resume.pdf');
+                    }
+                });
+            }
+
+            document.getElementById('downloadResume').addEventListener('click', function() {
+                generatePDF();
+            });
+
+            document.getElementById('share').addEventListener('click', function() {
+                generatePDF(function(pdf) {
+                    const pdfBlob = pdf.output('blob');
+                    const fileURL = URL.createObjectURL(pdfBlob);
+                    const subject = "Sharing My Resume";
+                    const body = `Hi,\n\nPlease find my resume attached.\n\nYou can download it from the following link: ${fileURL}\n\nRegards, Amna Aftab`;
+                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
