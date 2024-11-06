@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <style>
         /* Basic styles */
         .editable {
@@ -23,9 +24,11 @@
     <div id="resume" class="container">
         <div class="left_side">
             <div class="profileText">
-                <div class="imgBx">
-                    <img id="profileImage" src="resume.jpeg" width="250" height=200 align="center">
-                </div>
+                <div>
+                    <img id="profileImage" src="images.jpeg" alt="Profile Picture" class="profile-pic" />
+                    <input type="file" id="imageUpload" accept="image/*" />
+                    
+                  </div>
                 <h2>
                     <span id="name" contenteditable="true">Enter Your Name</span><br>
                     <span id="title" contenteditable="true">Enter Your Profession</span>
@@ -90,15 +93,22 @@
                 <div class="box" id="experienceList">
                     <ul>
                         <li>
-                            <h5 contenteditable="true">Duration Year</h5>
+                            <h5 class="dur" contenteditable="true">Duration Year</h5>
                             <h5 contenteditable="true">Company Name</h5>
                             <h5 contenteditable="true">Designation</h5>
                         </li>
-                        <!-- Add more items as needed -->
+                       
+                    </ul>
+                    <ul>
+                        <li>
+                            <h5  class="dur" contenteditable="true">Duration Year</h5>
+                            <h5 contenteditable="true">Company Name</h5>
+                            <h5 contenteditable="true">Designation</h5>
+                        </li>
+                      
                     </ul>
                 </div>
             </div>
-            <button id="toggleSkills">Hide Skills</button>
             <div id="contactInfoskills" class="skills-section">
                 <h3 class="title3"> Skills</h3>
                 <ul id="skillsList">
@@ -117,54 +127,96 @@
     </div>
 
     <script>
-        // Toggle skills visibility
-        const toggleButton = document.getElementById('toggleSkills');
-        const skillsSection = document.getElementById('contactInfoskills');
 
-        toggleButton.addEventListener('click', () => {
-            if (skillsSection.classList.contains('hidden')) {
-                skillsSection.classList.remove('hidden');
-                toggleButton.textContent = 'Hide Skills';
+document.addEventListener('DOMContentLoaded', function() {
+    const { jsPDF } = window.jspdf;
+
+    function generatePDF(callback) {
+        const resumeElement = document.getElementById('resume');
+        
+        // Hide the buttons before generating the PDF
+        const downloadButton = document.getElementById('downloadResume');
+        const shareButton = document.getElementById('share');
+        downloadButton.style.display = 'none';
+        shareButton.style.display = 'none';
+
+        // Use html2canvas to capture the resume element and generate the PDF
+        html2canvas(resumeElement).then(function(canvas) {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+
+            // Callback function to handle the PDF after it's generated
+            if (callback) {
+                callback(pdf);
             } else {
-                skillsSection.classList.add('hidden');
-                toggleButton.textContent = 'Show Skills';
-            }
-        });
-
-        // PDF generation and sharing
-        document.addEventListener('DOMContentLoaded', function() {
-            const { jsPDF } = window.jspdf;
-
-            function generatePDF(callback) {
-                const resumeElement = document.getElementById('resume');
-
-                html2canvas(resumeElement).then(function(canvas) {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-
-                    if (callback) {
-                        callback(pdf);
-                    } else {
-                        pdf.save('resume.pdf');
-                    }
-                });
+                pdf.save('resume.pdf');
             }
 
-            document.getElementById('downloadResume').addEventListener('click', function() {
-                generatePDF();
-            });
-
-            document.getElementById('share').addEventListener('click', function() {
-                generatePDF(function(pdf) {
-                    const pdfBlob = pdf.output('blob');
-                    const fileURL = URL.createObjectURL(pdfBlob);
-                    const subject = "Sharing My Resume";
-                    const body = `Hi,\n\nPlease find my resume attached.\n\nYou can download it from the following link: ${fileURL}\n\nRegards, Amna Aftab`;
-                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                });
-            });
+            // Restore the buttons after generating the PDF
+            downloadButton.style.display = 'inline';
+            shareButton.style.display = 'inline';
         });
+    }
+
+    // Event listener for the download button
+    document.getElementById('downloadResume').addEventListener('click', function() {
+        generatePDF();
+    });
+
+    // Event listener for the share button
+    document.getElementById('share').addEventListener('click', function() {
+        generatePDF(function(pdf) {
+            const pdfBlob = pdf.output('blob');
+            const fileURL = URL.createObjectURL(pdfBlob);
+            const subject = "Sharing My Resume";
+            const body = `Hi,\n\nPlease find my resume attached.\n\nYou can download it from the following link: ${fileURL}\n\nRegards, Amna Aftab`;
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        });
+    });
+});
+
+    </script>
+  
+    <script>
+      const imageInput = document.getElementById('imageUpload');
+      const profileImage = document.getElementById('profileImage');
+      let uploadedImageBase64 = null;
+  
+      // When profile image is clicked, trigger file input click
+      profileImage.addEventListener('click', function() {
+        imageInput.click();  // Open file input dialog
+      });
+  
+      // Handle file selection and display the uploaded image
+      imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            uploadedImageBase64 = e.target.result;  // Save image as base64
+            profileImage.src = uploadedImageBase64; // Display uploaded image
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+  
+      function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+  
+        // Add profile image to PDF if uploaded
+        if (uploadedImageBase64) {
+          pdf.addImage(uploadedImageBase64, 'PNG', 10, 10, 50, 50);  // Position and size in PDF
+        }
+  
+        // Add resume content to PDF
+        pdf.text("My Resume", 10, 80);
+        pdf.text("This is a sample resume content without the upload button or file name.", 10, 90);
+  
+        // Save the PDF
+        pdf.save("resume.pdf");
+      }
     </script>
 </body>
 </html>
